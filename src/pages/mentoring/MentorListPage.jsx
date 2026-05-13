@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { User, Briefcase, GraduationCap, MapPin, Search } from 'lucide-react';
+import MentoringRequestModal from '../../components/mentoring/MentoringRequestModal';
 
 const MentorListPage = () => {
   const [mentors, setMentors] = useState([]);
+  const [selectedMentor, setSelectedMentor] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     name: '',
     major: '',
@@ -28,11 +31,17 @@ const MentorListPage = () => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
+  const handleApplyClick = (mentor) => {
+    setSelectedMentor(mentor);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">멘토 찾기</h1>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-lg shadow">
+          {/* ... existing filter inputs ... */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
             <input
@@ -117,14 +126,23 @@ const MentorListPage = () => {
               </p>
               <button
                 className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 transition-colors text-sm font-medium"
-                onClick={() => alert('멘토링 신청 기능은 구현 중입니다.')}
+                onClick={() => handleApplyClick(mentor)}
               >
-                멘토링 신청하기
+                커피챗 신청하기
               </button>
             </div>
           </div>
         ))}
       </div>
+      
+      {isModalOpen && (
+        <MentoringRequestModal
+          mentor={selectedMentor}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => setIsModalOpen(false)}
+        />
+      )}
+
       {mentors.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           조건에 맞는 멘토를 찾을 수 없습니다.

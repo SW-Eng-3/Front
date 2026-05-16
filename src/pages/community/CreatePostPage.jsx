@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../api/client';
+import { communityApi } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 import { ArrowLeft } from 'lucide-react';
+import { POST_CATEGORY, POST_CATEGORY_LABELS } from '../../utils/constants';
 
 const CreatePostPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    category: 'FREE',
-    isAnonymous: false,
+    category: POST_CATEGORY.FREE,
+    anonymous: false, // Swagger 필드명에 맞춰 isAnonymous에서 anonymous로 변경
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post('/posts', formData);
+      const response = await communityApi.createPost(formData);
       navigate(`/community/${response.data}`);
     } catch (error) {
       console.error('Failed to create post', error);
@@ -46,10 +49,11 @@ const CreatePostPage = () => {
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             >
-              <option value="FREE">자유게시판</option>
-              <option value="QNA">질문답변</option>
-              <option value="JOB">취업/진로</option>
-              <option value="NOTICE">공지사항</option>
+              {Object.entries(POST_CATEGORY_LABELS).map(([value, label]) => {
+                // 공지사항은 교수님만 가능
+                if (value === POST_CATEGORY.PROFESSOR_NOTICE && user?.role !== 'PROFESSOR') return null;
+                return <option key={value} value={value}>{label}</option>;
+              })}
             </select>
           </div>
 
@@ -83,13 +87,13 @@ const CreatePostPage = () => {
 
           <div className="flex items-center">
             <input
-              id="isAnonymous"
+              id="anonymous"
               type="checkbox"
               className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              checked={formData.isAnonymous}
-              onChange={(e) => setFormData({ ...formData, isAnonymous: e.target.checked })}
+              checked={formData.anonymous}
+              onChange={(e) => setFormData({ ...formData, anonymous: e.target.checked })}
             />
-            <label htmlFor="isAnonymous" className="ml-2 block text-sm text-gray-900">
+            <label htmlFor="anonymous" className="ml-2 block text-sm text-gray-900">
               익명으로 작성
             </label>
           </div>

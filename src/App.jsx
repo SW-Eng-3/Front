@@ -5,11 +5,15 @@ import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import PostListPage from './pages/community/PostListPage';
 import PostDetailPage from './pages/community/PostDetailPage';
 import CreatePostPage from './pages/community/CreatePostPage';
 import MentorListPage from './pages/mentoring/MentorListPage';
+import ManageSchedulePage from './pages/mentoring/ManageSchedulePage';
 import MyProfilePage from './pages/profile/MyProfilePage';
+import PointHistoryPage from './pages/profile/PointHistoryPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 function App() {
   return (
@@ -21,11 +25,15 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/community" element={<PostListPage />} />
             <Route path="/community/:postId" element={<PostDetailPage />} />
             <Route path="/community/create" element={<CreatePostPage />} />
             <Route path="/mentoring" element={<MentorListPage />} />
+            <Route path="/mentoring/manage" element={<ManageSchedulePage />} />
             <Route path="/profile" element={<MyProfilePage />} />
+            <Route path="/profile/points" element={<PointHistoryPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </main>
       </div>

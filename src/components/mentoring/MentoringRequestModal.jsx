@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../../api/client';
+import { mentoringApi } from '../../api/client';
 import { X, Send } from 'lucide-react';
 
 const MentoringRequestModal = ({ mentor, onClose, onSuccess }) => {
@@ -13,17 +13,25 @@ const MentoringRequestModal = ({ mentor, onClose, onSuccess }) => {
       return;
     }
 
+    const mentorId = mentor?.userId || mentor?.id || mentor?.mentorId;
+    if (!mentorId) {
+      alert('멘토 정보를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      await api.post('/mentoring/apply', {
-        mentorId: mentor.userId,
-        message: message,
+      await mentoringApi.applyMentoring({
+        mentorId,
+        message,
       });
       alert('멘토링 신청이 완료되었습니다.');
       onSuccess();
     } catch (error) {
       console.error('Failed to apply for mentoring', error);
-      alert('멘토링 신청에 실패했습니다.');
+      const messageFromServer = error.response?.data?.message || error.message;
+      alert(`멘토링 신청에 실패했습니다. ${messageFromServer}`);
     } finally {
       setLoading(false);
     }

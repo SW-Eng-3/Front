@@ -7,17 +7,26 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, testLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login(email, password);
+      const trimmedEmail = email.trim();
+      const fullEmail = trimmedEmail.includes('@') ? trimmedEmail : `${trimmedEmail}@yc.ac.kr`;
+      await login(fullEmail, password);
       navigate('/');
     } catch (err) {
-      setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
+      const errorMessage = err.response?.data?.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
+      console.error('Login failed', err);
+      setError(errorMessage);
     }
+  };
+
+  const handleTestLogin = (roleType) => {
+    testLogin(roleType);
+    navigate('/');
   };
 
   return (
@@ -37,17 +46,20 @@ const LoginPage = () => {
             <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
               이메일 주소
             </label>
-            <div className="mt-2">
+            <div className="mt-2 flex rounded-md shadow-sm">
               <input
                 id="email"
                 name="email"
-                type="email"
-                autoComplete="email"
+                type="text"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                placeholder="학번 또는 아이디"
+                className="block w-full min-w-0 flex-1 rounded-none rounded-l-md border-0 px-4 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
               />
+              <span className="inline-flex items-center rounded-r-md border border-l-0 border-gray-300 px-3 text-gray-500 sm:text-sm">
+                @yc.ac.kr
+              </span>
             </div>
           </div>
 
@@ -56,6 +68,11 @@ const LoginPage = () => {
               <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
                 비밀번호
               </label>
+              <div className="text-sm">
+                <Link to="/reset-password" name="reset-password-link" className="font-semibold text-primary-600 hover:text-primary-500">
+                  비밀번호를 잊으셨나요?
+                </Link>
+              </div>
             </div>
             <div className="mt-2">
               <input
@@ -66,7 +83,7 @@ const LoginPage = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                className="block w-full rounded-md border-0 px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
               />
             </div>
           </div>
@@ -82,6 +99,41 @@ const LoginPage = () => {
             </button>
           </div>
         </form>
+
+        {/* 테스트 로그인 섹션 */}
+        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-xs text-center text-blue-700 font-semibold mb-3">⚙️ 테스트용 계정으로 로그인</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => handleTestLogin('professor')}
+              className="px-3 py-2 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-md transition-colors"
+            >
+              교수 로그인
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTestLogin('student')}
+              className="px-3 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+            >
+              학생 로그인
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTestLogin('mentor')}
+              className="px-3 py-2 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors"
+            >
+              멘토 로그인
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTestLogin('admin')}
+              className="px-3 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+            >
+              관리자 로그인
+            </button>
+          </div>
+        </div>
 
         <p className="mt-10 text-center text-sm text-gray-500">
           계정이 없으신가요?{' '}

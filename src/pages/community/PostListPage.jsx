@@ -25,14 +25,24 @@ const PostListPage = () => {
     if (user) {
       fetchPosts();
     }
-  }, [category, user]);
+  }, [category, searchTerm, user]);
 
   const fetchPosts = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await communityApi.getPosts(category || undefined);
-      setPosts(Array.isArray(response.data) ? response.data : []);
+      const response = await communityApi.getPosts({
+        category: category || undefined,
+        keyword: searchTerm || undefined,
+      });
+      const responseData = response.data;
+      if (Array.isArray(responseData)) {
+        setPosts(responseData);
+      } else if (responseData?.content) {
+        setPosts(responseData.content);
+      } else {
+        setPosts([]);
+      }
     } catch (error) {
       console.error('Failed to fetch posts', error);
       setError('게시글을 불러오는 중 오류가 발생했습니다.');

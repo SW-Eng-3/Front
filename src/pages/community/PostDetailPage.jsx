@@ -12,6 +12,7 @@ const PostDetailPage = () => {
   const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [commentContent, setCommentContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [reportTarget, setReportTarget] = useState(null);
 
   useEffect(() => {
@@ -35,12 +36,20 @@ const PostDetailPage = () => {
       alert('로그인이 필요합니다.');
       return;
     }
+    if (!commentContent.trim()) return;
+
+    setIsSubmitting(true);
     try {
-      await communityApi.addComment(postId, { content: commentContent });
+      await communityApi.addComment(postId, { content: commentContent.trim() });
       setCommentContent('');
-      fetchPost();
+      await fetchPost();
+      alert('답변이 등록되었습니다!');
     } catch (error) {
       console.error('Failed to add comment', error);
+      const msg = error.response?.data?.message || '답변 등록에 실패했습니다.';
+      alert(msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

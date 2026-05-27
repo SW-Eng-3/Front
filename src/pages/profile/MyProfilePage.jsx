@@ -101,7 +101,7 @@ const MyProfilePage = () => {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              커피챗 내역
+              멘토링 내역
             </button>
           </div>
 

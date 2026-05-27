@@ -71,48 +71,33 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // 테스트 로그인 함수 (개발 환경에서만 사용)
-  const testLogin = (roleType) => {
-    const testAccounts = {
-      professor: {
-        userId: '10000000-0000-0000-0000-000000000001',
-        name: '테스트교수',
-        email: 'prof@yc.ac.kr',
-        role: 'PROFESSOR',
-        points: 1000,
-        major: 'COMPUTER_SCIENCE'
-      },
-      student: {
-        userId: '10000000-0000-0000-0000-000000000002',
-        name: '테스트학생',
-        email: 'student@yc.ac.kr',
-        role: 'STUDENT',
-        points: 250,
-        major: 'COMPUTER_SCIENCE'
-      },
-      mentor: {
-        userId: '10000000-0000-0000-0000-000000000003',
-        name: '테스트멘토',
-        email: 'mentor@yc.ac.kr',
-        role: 'GRADUATE',
-        points: 750,
-        major: 'COMPUTER_SCIENCE'
-      },
-      admin: {
-        userId: '10000000-0000-0000-0000-000000000004',
-        name: '테스트관리자',
-        email: 'admin@yc.ac.kr',
-        role: 'ADMIN',
-        points: 9999
-      }
+  // 테스트 로그인 함수 (실제 서버에서 토큰을 받아옴)
+  const testLogin = async (roleType) => {
+    const testEmails = {
+      professor: 'prof@yc.ac.kr',
+      student: 'student@yc.ac.kr',
+      mentor: 'mentor@yc.ac.kr',
+      admin: 'admin@yc.ac.kr'
     };
 
-    const testUser = testAccounts[roleType];
-    if (testUser) {
-      localStorage.setItem('token', 'test-token-' + roleType);
-      localStorage.setItem('userId', testUser.userId);
-      localStorage.setItem('user', JSON.stringify(testUser));
-      setUser(testUser);
+    const email = testEmails[roleType];
+    if (email) {
+      try {
+        setLoading(true);
+        const { testApi } = await import('../api/client');
+        const response = await testApi.getTestToken(email);
+        const { accessToken, userId } = response.data;
+        
+        localStorage.setItem('token', accessToken);
+        localStorage.setItem('userId', userId);
+        
+        await fetchProfile(userId);
+      } catch (error) {
+        console.error('테스트 로그인 실패:', error);
+        alert('테스트 계정 로그인에 실패했습니다. 서버 상태를 확인해주세요.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

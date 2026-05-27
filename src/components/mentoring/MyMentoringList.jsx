@@ -63,14 +63,14 @@ const MyMentoringList = () => {
 
   return (
     <div className="space-y-12">
-      {/* 내가 신청한 커피챗 */}
+      {/* 내가 신청한 멘토링 */}
       <div>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-black text-gray-900 flex items-center">
             <div className="bg-primary-100 p-2 rounded-xl mr-3">
               <Send className="h-5 w-5 text-primary-600" />
             </div>
-            내가 신청한 커피챗
+            내가 신청한 멘토링
           </h3>
           <span className="text-sm font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">{sentRequests.length}건</span>
         </div>
@@ -102,14 +102,14 @@ const MyMentoringList = () => {
           ) : (
             <div className="py-16 text-center bg-gray-50/50 rounded-3xl border border-dashed border-gray-200">
               <Inbox className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-gray-500 font-bold">아직 신청한 커피챗이 없습니다.</p>
+              <p className="text-gray-500 font-bold">아직 신청한 멘토링이 없습니다.</p>
               <Link to="/mentoring" className="text-primary-600 text-sm font-bold mt-2 inline-block hover:underline">멘토님 찾아보기</Link>
             </div>
           )}
         </div>
       </div>
 
-      {/* 내가 받은 커피챗 (멘토인 경우) */}
+      {/* 내가 받은 멘토링 (멘토인 경우) */}
       {(user.role === 'PROFESSOR' || user.role === 'GRADUATE') && (
         <div>
           <div className="flex items-center justify-between mb-6">
@@ -117,7 +117,7 @@ const MyMentoringList = () => {
               <div className="bg-indigo-100 p-2 rounded-xl mr-3">
                 <Inbox className="h-5 w-5 text-indigo-600" />
               </div>
-              나에게 온 커피챗 신청
+              나에게 온 멘토링 신청
             </h3>
             <span className="text-sm font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">{receivedRequests.length}건</span>
           </div>
@@ -176,7 +176,7 @@ const MyMentoringList = () => {
             ) : (
               <div className="py-16 text-center bg-gray-50/50 rounded-3xl border border-dashed border-gray-200">
                 <Inbox className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-                <p className="text-gray-500 font-bold">받은 커피챗 신청이 없습니다.</p>
+                <p className="text-gray-500 font-bold">받은 멘토링 신청이 없습니다.</p>
                 <p className="text-gray-400 text-sm mt-1">프로필을 더 멋지게 꾸며보세요!</p>
               </div>
             )}

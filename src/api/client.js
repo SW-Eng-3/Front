@@ -9,8 +9,10 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
+  if (token && token !== 'undefined' && token !== 'null') {
     config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    delete config.headers.Authorization;
   }
   return config;
 });
@@ -29,7 +31,25 @@ export const authApi = {
 
 // Community
 export const communityApi = {
-  getPosts: (category) => api.get('/posts', { params: { category } }),
+  getPosts: (params) => {
+    const queryParams = {
+      page: 0,
+      size: 20,
+      ...(params || {})
+    };
+    
+    // Aggressively clean params: remove undefined, null, and empty strings.
+    // Also, ensure we don't accidentally send literal "undefined" or "null" strings.
+    const cleanedParams = {};
+    for (const key in queryParams) {
+      const value = queryParams[key];
+      if (value !== undefined && value !== null && value !== '' && value !== 'undefined' && value !== 'null') {
+        cleanedParams[key] = value;
+      }
+    }
+    
+    return api.get('/posts', { params: cleanedParams });
+  },
   getPost: (postId) => api.get(`/posts/${postId}`),
   createPost: (data) => api.post('/posts', data),
   updatePost: (postId, data) => api.put(`/posts/${postId}`, data),
@@ -41,9 +61,23 @@ export const communityApi = {
 
 // Mentoring
 export const mentoringApi = {
-  getMentors: (params) => api.get('/mentoring/mentors', { params }),
+  getMentors: (params) => {
+    const cleanedParams = {};
+    for (const key in params) {
+      const value = params[key];
+      if (value !== undefined && value !== null && value !== '' && value !== 'undefined' && value !== 'null') {
+        cleanedParams[key] = value;
+      }
+    }
+    return api.get('/mentoring/mentors', { params: cleanedParams });
+  },
   getMentorSchedules: (mentorId) => api.get(`/mentoring/mentors/${mentorId}/schedules`),
-  applyMentoring: (data) => api.post('/mentoring/apply', data),
+  applyMentoring: (data) => {
+    const cleanedData = Object.fromEntries(
+      Object.entries(data || {}).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    );
+    return api.post('/mentoring/apply', cleanedData);
+  },
   getMyRequests: () => api.get('/mentoring/my-requests'),
   cancelMentoring: (requestId) => api.delete(`/mentoring/${requestId}/cancel`),
   updateStatus: (requestId, status) => api.patch(`/mentoring/${requestId}/status`, null, { params: { status } }),
@@ -56,6 +90,16 @@ export const gamificationApi = {
   getHistory: () => api.get('/gamification/history'),
   awardPoints: (data) => api.post('/gamification/test/award', data),
   deductPoints: (data) => api.post('/gamification/test/deduct', data),
+};
+
+// Chat
+export const chatApi = {
+  getMyRooms: () => api.get('/chats/rooms'),
+  getRoom: (roomId) => api.get(`/chats/rooms/${roomId}`),
+  getMessages: (roomId) => api.get(`/chats/rooms/${roomId}/messages`),
+  sendMessage: (roomId, data) => api.post(`/chats/rooms/${roomId}/messages`, data),
+  getOrCreateSeniorRoomByQuery: (seniorId) => api.get('/chats/rooms/senior', { params: { seniorId } }),
+  getOrCreateSeniorRoom: (data) => api.post('/chats/rooms/senior', data),
 };
 
 // Test

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { mentoringApi } from '../../api/client';
-import { User, Users, Briefcase, GraduationCap, MapPin, Search, Filter, Coffee } from 'lucide-react';
+import { mentoringApi, chatApi } from '../../api/client';
+import { User, Users, Briefcase, GraduationCap, MapPin, Search, Filter, Coffee, MessageSquare } from 'lucide-react';
 import MentoringRequestModal from '../../components/mentoring/MentoringRequestModal';
 import { MAJOR_LABELS, JOB_LABELS, COUNTRY_LABELS } from '../../utils/constants';
 
@@ -58,6 +58,27 @@ const MentorListPage = () => {
   const handleApplyClick = (mentor) => {
     setSelectedMentor(mentor);
     setIsModalOpen(true);
+  };
+
+  const handleChatWithMentor = async (mentor) => {
+    const seniorId = mentor.userId || mentor.id || mentor.mentorId;
+    if (!seniorId) {
+      alert('멘토 정보를 확인할 수 없습니다.');
+      return;
+    }
+
+    try {
+      const response = await chatApi.getOrCreateSeniorRoomByQuery(seniorId);
+      const room = response.data;
+      if (room?.roomId) {
+        navigate(`/chat/rooms/${room.roomId}`);
+      } else {
+        alert('커피챗방을 열지 못했습니다. 다시 시도해주세요.');
+      }
+    } catch (error) {
+      console.error('Failed to open chat room', error);
+      alert('커피챗방을 열 수 없습니다.');
+    }
   };
 
   return (
@@ -175,13 +196,23 @@ const MentorListPage = () => {
                   <p className="text-sm text-gray-600 line-clamp-2 min-h-[2.5rem] leading-relaxed mb-6">
                     {mentor.bio || '등록된 소개글이 아직 없습니다. 따뜻한 조언이 기다리고 있습니다!'}
                   </p>
+                  <div className="grid gap-3">
                   <button
                     className="w-full bg-primary-600 text-white py-3 rounded-xl hover:bg-primary-700 transition-all text-sm font-bold shadow-sm flex items-center justify-center gap-2"
                     onClick={() => handleApplyClick(mentor)}
                   >
-                    <Coffee className="h-4 w-4" />
-                    커피챗 신청하기
+                    <Users className="h-4 w-4" />
+                    멘토 신청하기
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChatWithMentor(mentor)}
+                    className="w-full border border-primary-200 text-primary-700 py-3 rounded-xl hover:bg-primary-50 transition-all text-sm font-bold flex items-center justify-center gap-2"
+                  >
+                    <Coffee className="h-4 w-4" />
+                    커피챗 시작하기
+                  </button>
+                </div>
                 </div>
               </div>
             </div>

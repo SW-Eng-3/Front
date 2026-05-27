@@ -13,25 +13,26 @@ const MentoringRequestModal = ({ mentor, onClose, onSuccess }) => {
       return;
     }
 
+    // Extract mentorId correctly from mentor object
     const mentorId = mentor?.userId || mentor?.id || mentor?.mentorId;
+    
     if (!mentorId) {
+      console.error('Mentor object missing ID:', mentor);
       alert('멘토 정보를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.');
-      setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
       await mentoringApi.applyMentoring({
-        mentorId,
-        message,
+        mentorId: mentorId,
+        message: message.trim(),
       });
-      alert('멘토링 신청이 완료되었습니다.');
       onSuccess();
     } catch (error) {
-      console.error('Failed to apply for mentoring', error);
+      console.error('Failed to apply for mentoring:', error);
       const messageFromServer = error.response?.data?.message || error.message;
-      alert(`멘토링 신청에 실패했습니다. ${messageFromServer}`);
+      alert(`멘토 신청에 실패했습니다: ${messageFromServer}`);
     } finally {
       setLoading(false);
     }
@@ -42,7 +43,7 @@ const MentoringRequestModal = ({ mentor, onClose, onSuccess }) => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="text-lg font-bold text-gray-900">
-            {mentor.name} 님에게 커피챗 신청
+            {mentor.name} 님에게 멘토 신청
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X className="h-6 w-6" />

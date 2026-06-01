@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { mentoringApi, chatApi } from '../../api/client';
-import { User, Users, Briefcase, GraduationCap, MapPin, Search, Filter, Coffee, MessageSquare } from 'lucide-react';
+import { User, Users, Briefcase, GraduationCap, MapPin, Search, Filter, Compass, MessageSquare } from 'lucide-react';
 import MentoringRequestModal from '../../components/mentoring/MentoringRequestModal';
 import { MAJOR_LABELS, JOB_LABELS, COUNTRY_LABELS } from '../../utils/constants';
 
@@ -71,7 +71,14 @@ const MentorListPage = () => {
       const response = await chatApi.getOrCreateSeniorRoomByQuery(seniorId);
       const room = response.data;
       if (room?.roomId) {
-        navigate(`/chat/rooms/${room.roomId}`);
+        // Trigger chat widget instead of navigating
+        window.dispatchEvent(new CustomEvent('openChat', { 
+          detail: { 
+            roomId: room.roomId,
+            seniorName: room.seniorName,
+            studentName: room.studentName
+          } 
+        }));
       } else {
         alert('커피챗방을 열지 못했습니다. 다시 시도해주세요.');
       }
@@ -209,7 +216,7 @@ const MentorListPage = () => {
                     onClick={() => handleChatWithMentor(mentor)}
                     className="w-full border border-primary-200 text-primary-700 py-3 rounded-xl hover:bg-primary-50 transition-all text-sm font-bold flex items-center justify-center gap-2"
                   >
-                    <Coffee className="h-4 w-4" />
+                    <Compass className="h-4 w-4" />
                     커피챗 시작하기
                   </button>
                 </div>

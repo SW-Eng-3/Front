@@ -9,6 +9,7 @@ const PostListPage = () => {
   const [posts, setPosts] = useState([]);
   const [category, setCategory] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user, loading: authLoading } = useAuth();
@@ -21,11 +22,19 @@ const PostListPage = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Search term debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   useEffect(() => {
     if (user) {
       fetchPosts();
     }
-  }, [category, searchTerm, user]);
+  }, [category, debouncedSearchTerm, user]);
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -33,16 +42,21 @@ const PostListPage = () => {
     try {
       const response = await communityApi.getPosts({
         category: category || undefined,
-        keyword: searchTerm || undefined,
+        keyword: debouncedSearchTerm || undefined,
       });
       const responseData = response.data;
+      
+      let postsArray = [];
       if (Array.isArray(responseData)) {
-        setPosts(responseData);
+        postsArray = responseData;
       } else if (responseData?.content) {
-        setPosts(responseData.content);
-      } else {
-        setPosts([]);
+        postsArray = responseData.content;
       }
+      
+      // Sort posts by createdAt (descending)
+      const sortedPosts = postsArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setPosts(sortedPosts);
+
     } catch (error) {
       console.error('Failed to fetch posts', error);
       setError('게시글을 불러오는 중 오류가 발생했습니다.');
@@ -50,11 +64,6 @@ const PostListPage = () => {
       setLoading(false);
     }
   };
-
-  const filteredPosts = posts.filter(post => 
-    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   if (authLoading) return <div className="p-8 text-center text-gray-500">인증 확인 중...</div>;
   if (!user) return null;
@@ -125,7 +134,7 @@ const PostListPage = () => {
           </div>
         ) : (
           <ul className="divide-y divide-gray-50">
-            {filteredPosts.map((post) => (
+            {posts.map((post) => (
               <li key={post.id} className="transition-all hover:bg-primary-50/30">
                 <Link to={`/community/${post.id}`} className="block">
                   <div className="px-8 py-6">
@@ -175,7 +184,7 @@ const PostListPage = () => {
                 </Link>
               </li>
             ))}
-            {filteredPosts.length === 0 && (
+            {posts.length === 0 && (
               <li className="px-6 py-32 text-center flex flex-col items-center">
                 <div className="bg-gray-50 p-6 rounded-full mb-6">
                   <Search className="h-12 w-12 text-gray-200" />

@@ -71,6 +71,22 @@ const PostDetailPage = () => {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) return;
+    try {
+      await communityApi.deletePost(postId);
+      alert('게시글이 삭제되었습니다.');
+      navigate('/community');
+    } catch (error) {
+      console.error('Failed to delete post', error);
+      alert('게시글 삭제에 실패했습니다.');
+    }
+  };
+
+  const handleEditPost = () => {
+    navigate('/community/create', { state: { post } });
+  };
+
   const getRoleLabel = (role) => {
     const roles = {
       STUDENT: '재학생',
@@ -161,6 +177,22 @@ const PostDetailPage = () => {
                 )}
               </div>
             </div>
+            {(user?.userId === post.authorId || user?.id === post.authorId) && (
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleEditPost}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-black rounded-xl hover:bg-gray-200 transition-all"
+                >
+                  수정
+                </button>
+                <button
+                  onClick={handleDeletePost}
+                  className="px-4 py-2 bg-red-50 text-red-600 text-xs font-black rounded-xl hover:bg-red-100 transition-all border border-red-100"
+                >
+                  삭제
+                </button>
+              </div>
+            )}
           </div>
         </div>
         

@@ -16,6 +16,7 @@ import PointHistoryPage from './pages/profile/PointHistoryPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ChatRoomsPage from './pages/chat/ChatRoomsPage';
 import ChatRoomDetailPage from './pages/chat/ChatRoomDetailPage';
+import ChatWidget from './components/ChatWidget';
 
 function App() {
   return (
@@ -33,13 +34,12 @@ function App() {
             <Route path="/community/create" element={<CreatePostPage />} />
             <Route path="/mentoring" element={<MentorListPage />} />
             <Route path="/mentoring/manage" element={<ManageSchedulePage />} />
-            <Route path="/chat" element={<ChatRoomsPage />} />
-            <Route path="/chat/rooms/:roomId" element={<ChatRoomDetailPage />} />
             <Route path="/profile" element={<MyProfilePage />} />
             <Route path="/profile/points" element={<PointHistoryPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </main>
+        <ChatWidget />
       </div>
     </AuthProvider>
   );

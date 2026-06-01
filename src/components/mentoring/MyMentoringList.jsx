@@ -6,17 +6,29 @@ import { Clock, CheckCircle, XCircle, MessageSquare, User, Send, Inbox } from 'l
 
 const MyMentoringList = () => {
   const { user } = useAuth();
-  const [requests, setRequests] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
+  const [receivedRequests, setReceivedRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
+    if (user?.userId) {
+      fetchRequests();
+    }
+  }, [user?.userId, user?.role]);
 
   const fetchRequests = async () => {
+    if (!user) return;
+    setLoading(true);
     try {
-      const response = await mentoringApi.getMyRequests();
-      setRequests(response.data);
+      // 내가 보낸 신청 조회
+      const myRes = await mentoringApi.getMyRequests();
+      setSentRequests(Array.isArray(myRes.data) ? myRes.data : myRes.data?.content || []);
+      
+      // 내가 받은 신청 조회 (멘토인 경우)
+      if (user.role === 'PROFESSOR' || user.role === 'GRADUATE') {
+        const incomingRes = await mentoringApi.getIncomingRequests();
+        setReceivedRequests(Array.isArray(incomingRes.data) ? incomingRes.data : incomingRes.data?.content || []);
+      }
     } catch (error) {
       console.error('Failed to fetch mentoring requests', error);
     } finally {
@@ -24,10 +36,36 @@ const MyMentoringList = () => {
     }
   };
 
+  const handleCancelMentoring = async (requestId) => {
+    if (!window.confirm('정말로 멘토링 신청을 취소하시겠습니까?')) return;
+    
+    try {
+      await mentoringApi.cancelMentoring(requestId);
+      alert('신청이 취소되었습니다.');
+      fetchRequests();
+    } catch (error) {
+      console.error('Failed to cancel mentoring', error);
+      alert('신청 취소에 실패했습니다.');
+    }
+  };
+
   const handleUpdateStatus = async (requestId, status) => {
     try {
-      await mentoringApi.updateStatus(requestId, status);
+      const response = await mentoringApi.updateStatus(requestId, status);
       alert(`신청을 ${status === 'ACCEPTED' ? '수락' : status === 'REJECTED' ? '거절' : '완료'}했습니다.`);
+      
+      // If accepted, trigger the chat widget to open
+      if (status === 'ACCEPTED') {
+        const event = new CustomEvent('openChat', { 
+          detail: { 
+            roomId: response.data?.roomId,
+            seniorName: response.data?.seniorName || response.data?.mentorName,
+            studentName: response.data?.studentName || response.data?.menteeName
+          } 
+        });
+        window.dispatchEvent(event);
+      }
+      
       fetchRequests();
     } catch (error) {
       console.error('Failed to update status', error);
@@ -57,9 +95,6 @@ const MyMentoringList = () => {
       <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary-100 border-t-primary-600"></div>
     </div>
   );
-
-  const sentRequests = requests.filter(req => req.menteeId === user.userId);
-  const receivedRequests = requests.filter(req => req.mentorId === user.userId);
 
   return (
     <div className="space-y-12">
@@ -91,7 +126,17 @@ const MyMentoringList = () => {
                       </p>
                     </div>
                   </div>
-                  {getStatusBadge(req.status)}
+                  <div className="flex flex-col items-end gap-2">
+                    {getStatusBadge(req.status)}
+                    {req.status === 'REQUESTED' && (
+                      <button
+                        onClick={() => handleCancelMentoring(req.id)}
+                        className="text-[10px] font-bold text-red-500 hover:text-red-700 underline"
+                      >
+                        신청 취소
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-5 bg-gray-50/50 p-4 rounded-2xl text-sm text-gray-700 flex items-start border border-gray-100 italic">
                   <MessageSquare className="h-4 w-4 mr-3 mt-0.5 text-primary-300 flex-shrink-0" />

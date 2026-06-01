@@ -15,6 +15,8 @@ const MentoringRequestModal = ({ mentor, onClose, onSuccess }) => {
 
     // Extract mentorId correctly from mentor object
     const mentorId = mentor?.userId || mentor?.id || mentor?.mentorId;
+    console.log('Attempting to apply for mentoring with mentor object:', mentor);
+    console.log('Extracted mentorId:', mentorId);
     
     if (!mentorId) {
       console.error('Mentor object missing ID:', mentor);
@@ -24,10 +26,13 @@ const MentoringRequestModal = ({ mentor, onClose, onSuccess }) => {
 
     setLoading(true);
     try {
-      await mentoringApi.applyMentoring({
+      const applyData = {
         mentorId: mentorId,
         message: message.trim(),
-      });
+      };
+      console.log('Sending apply data to API:', applyData);
+      await mentoringApi.applyMentoring(applyData);
+      alert('멘토링 신청이 성공적으로 완료되었습니다!');
       onSuccess();
     } catch (error) {
       console.error('Failed to apply for mentoring:', error);

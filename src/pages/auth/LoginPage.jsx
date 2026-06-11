@@ -45,6 +45,26 @@ const LoginPage = () => {
     }
   };
 
+  const handleGraduateQuickLogin = async () => {
+    try {
+      await login("22460023@yc.ac.kr", "1234");
+      toast.success("졸업생 계정으로 로그인되었습니다.");
+      navigate("/");
+    } catch (err) {
+      toast.error("테스트 로그인 실패");
+    }
+  };
+
+  const handleStudentQuickLogin = async () => {
+    try {
+      await login("22460043@yc.ac.kr", "esdel101");
+      toast.success("재학생 계정으로 로그인되었습니다.");
+      navigate("/");
+    } catch (err) {
+      toast.error("테스트 로그인 실패");
+    }
+  };
+
   return (
     <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -147,17 +167,17 @@ const LoginPage = () => {
             </button>
             <button
               type="button"
-              onClick={() => handleTestLogin("student")}
+              onClick={handleStudentQuickLogin}
               className="px-3 py-2.5 text-xs font-bold text-blue-700 bg-blue-100 hover:bg-blue-200 hover:shadow-md transition-all rounded-xl border border-blue-200 active:scale-95"
             >
-              학생 계정
+              재학생 계정 (테스트)
             </button>
             <button
               type="button"
-              onClick={() => handleTestLogin("mentor")}
+              onClick={handleGraduateQuickLogin}
               className="px-3 py-2.5 text-xs font-bold text-green-700 bg-green-100 hover:bg-green-200 hover:shadow-md transition-all rounded-xl border border-green-200 active:scale-95"
             >
-              멘토 계정
+              졸업생 계정 (테스트)
             </button>
             <button
               type="button"

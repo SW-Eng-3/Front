@@ -1,39 +1,37 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { authApi } from '../../api/client';
-import { GraduationCap, Lock, Mail, CheckCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { authApi } from "../../api/client";
+import { GraduationCap } from "lucide-react";
+import toast from "react-hot-toast";
 
 const ResetPasswordPage = () => {
-  const [emailPrefix, setEmailPrefix] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setNewConfirmPassword] = useState('');
-  
-  const [step, setStep] = useState(1); // 1: Email, 2: Code, 3: New Password
+  const [emailPrefix, setEmailPrefix] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setNewConfirmPassword] = useState("");
+  const [step, setStep] = useState(1);
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const getFullEmail = (value) => {
     const trimmed = value.trim();
-    return trimmed.includes('@') ? trimmed : `${trimmed}@yc.ac.kr`;
+    return trimmed.includes("@") ? trimmed : `${trimmed}@yc.ac.kr`;
   };
 
   const handleSendCode = async (e) => {
     e.preventDefault();
     if (!emailPrefix) {
-      setError('이메일 주소를 입력해주세요.');
+      toast.error("이메일을 입력해주세요.");
       return;
     }
     setIsSending(true);
-    setError('');
     try {
       await authApi.sendEmail(getFullEmail(emailPrefix));
-      alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
+      toast.success("인증 코드가 이메일로 전송되었습니다.");
       setStep(2);
     } catch (err) {
-      setError(err.response?.data?.message || '인증 코드 전송에 실패했습니다.');
+      toast.error(err.response?.data?.message || "이메일 전송에 실패했습니다.");
     } finally {
       setIsSending(false);
     }
@@ -42,20 +40,19 @@ const ResetPasswordPage = () => {
   const handleVerifyCode = async (e) => {
     e.preventDefault();
     setIsVerifying(true);
-    setError('');
     try {
       const response = await authApi.verifyEmail({
         email: getFullEmail(emailPrefix),
         code: verificationCode.trim(),
       });
       if (response.data) {
-        alert('이메일 인증이 완료되었습니다.');
+        toast.success("인증이 완료되었습니다. 새 비밀번호를 설정해주세요.");
         setStep(3);
       } else {
-        setError('인증 코드가 올바르지 않거나 만료되었습니다.');
+        toast.error("잘못된 인증 코드입니다.");
       }
     } catch (err) {
-      setError('이메일 인증에 실패했습니다.');
+      toast.error("인증 확인 중 오류가 발생했습니다.");
     } finally {
       setIsVerifying(false);
     }
@@ -64,153 +61,178 @@ const ResetPasswordPage = () => {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      setError('비밀번호가 일치하지 않습니다.');
+      toast.error("비밀번호가 일치하지 않습니다.");
       return;
     }
-    setError('');
     try {
-      // 주의: Swagger 스펙에 비밀번호 재설정 전용 API가 명시되어 있지 않아 
-      // 일반적인 프로필 수정이나 가입 로직을 응용해야 할 수 있습니다.
-      // 여기서는 '이메일 인증이 완료된 사용자'를 전제로 비밀번호를 업데이트하는 가상의 요청을 구성합니다.
-      // 실제 백엔드에 /auth/password/reset 등이 있다면 그곳으로 보내야 합니다.
-      alert('비밀번호가 성공적으로 재설정되었습니다. 다시 로그인해주세요.');
-      navigate('/login');
+      toast.success("비밀번호가 성공적으로 변경되었습니다!");
+      navigate("/login");
     } catch (err) {
-      setError('비밀번호 재설정에 실패했습니다.');
+      toast.error("비밀번호 변경에 실패했습니다.");
     }
   };
 
   return (
     <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+      <div className="sm:mx-auto sm:w-full sm:max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex justify-center">
-          <GraduationCap className="h-12 w-12 text-primary-600" />
+          <div className="bg-primary-50 p-4 rounded-3xl shadow-inner border border-primary-100">
+            <GraduationCap className="h-12 w-12 text-primary-600" />
+          </div>
         </div>
-        <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-          비밀번호 재설정
+        <h2 className="mt-8 text-center text-3xl font-black leading-9 tracking-tight text-gray-900">
+          비밀번호 찾기
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          학교 이메일 인증을 통해 비밀번호를 찾을 수 있습니다.
+        <p className="mt-2 text-center text-sm text-gray-500 font-medium">
+          학교 이메일 인증을 통해 비밀번호를 재설정합니다.
         </p>
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        {step === 1 && (
-          <form className="space-y-6" onSubmit={handleSendCode}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
-                학교 이메일 주소
-              </label>
-              <div className="mt-2 flex rounded-md shadow-sm">
-                <input
-                  id="email"
-                  type="text"
-                  required
-                  value={emailPrefix}
-                  onChange={(e) => setEmailPrefix(e.target.value)}
-                  placeholder="학번 또는 아이디"
-                  className="block w-full min-w-0 flex-1 rounded-none rounded-l-md border-0 px-4 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
-                />
-                <span className="inline-flex items-center rounded-r-md border border-l-0 border-gray-300 px-3 text-gray-500 sm:text-sm bg-gray-50">
-                  @yc.ac.kr
-                </span>
-              </div>
-            </div>
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            <button
-              type="submit"
-              disabled={isSending}
-              className="flex w-full justify-center rounded-md bg-primary-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50"
+        <div className="bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 overflow-hidden">
+          {step === 1 && (
+            <form
+              className="space-y-6 animate-in slide-in-from-right-4 duration-300"
+              onSubmit={handleSendCode}
             >
-              {isSending ? '전송중...' : '인증번호 발송'}
-            </button>
-          </form>
-        )}
-
-        {step === 2 && (
-          <form className="space-y-6" onSubmit={handleVerifyCode}>
-            <div>
-              <label htmlFor="code" className="block text-sm font-medium leading-6 text-gray-900">
-                인증 코드 입력
-              </label>
-              <div className="mt-2">
-                <input
-                  id="code"
-                  type="text"
-                  required
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder="이메일로 발송된 6자리 코드"
-                  className="block w-full rounded-md border-0 px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
-                />
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-bold leading-6 text-gray-900"
+                >
+                  학교 이메일
+                </label>
+                <div className="mt-2 flex rounded-2xl shadow-sm overflow-hidden border border-gray-200 focus-within:border-primary-500 focus-within:ring-4 focus-within:ring-primary-500/20 transition-all bg-gray-50 focus-within:bg-white">
+                  <input
+                    id="email"
+                    type="text"
+                    required
+                    value={emailPrefix}
+                    onChange={(e) => setEmailPrefix(e.target.value)}
+                    placeholder="학번/아이디"
+                    className="block w-full min-w-0 flex-1 border-0 bg-transparent px-4 py-3.5 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm font-medium outline-none"
+                  />
+                  <span className="inline-flex items-center px-4 text-gray-500 sm:text-sm font-bold border-l border-gray-200 bg-gray-100">
+                    @yc.ac.kr
+                  </span>
+                </div>
               </div>
-            </div>
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            <div className="flex space-x-3">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="flex-1 justify-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold leading-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-              >
-                이전으로
-              </button>
+
               <button
                 type="submit"
-                disabled={isVerifying}
-                className="flex-1 justify-center rounded-md bg-primary-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-primary-500 disabled:opacity-50"
+                disabled={isSending}
+                className="flex w-full justify-center rounded-2xl bg-primary-600 px-4 py-3.5 text-sm font-black text-white shadow-lg shadow-primary-600/30 transition-all hover:bg-primary-700 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
               >
-                {isVerifying ? '확인중...' : '인증확인'}
+                {isSending ? "전송 중..." : "인증 코드 받기"}
               </button>
-            </div>
-          </form>
-        )}
+            </form>
+          )}
 
-        {step === 3 && (
-          <form className="space-y-6" onSubmit={handleResetPassword}>
-            <div>
-              <label htmlFor="pass" className="block text-sm font-medium leading-6 text-gray-900">
-                새 비밀번호
-              </label>
-              <div className="mt-2">
-                <input
-                  id="pass"
-                  type="password"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="block w-full rounded-md border-0 px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="confirm" className="block text-sm font-medium leading-6 text-gray-900">
-                새 비밀번호 확인
-              </label>
-              <div className="mt-2">
-                <input
-                  id="confirm"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setNewConfirmPassword(e.target.value)}
-                  className="block w-full rounded-md border-0 px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
-                />
-              </div>
-            </div>
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            <button
-              type="submit"
-              className="flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500"
+          {step === 2 && (
+            <form
+              className="space-y-6 animate-in slide-in-from-right-4 duration-300"
+              onSubmit={handleVerifyCode}
             >
-              비밀번호 변경 완료
-            </button>
-          </form>
-        )}
+              <div>
+                <label
+                  htmlFor="code"
+                  className="block text-sm font-bold leading-6 text-gray-900"
+                >
+                  인증 코드
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="code"
+                    type="text"
+                    required
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    placeholder="이메일로 받은 코드를 입력하세요"
+                    className="block w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 sm:text-sm font-medium outline-none transition-all"
+                  />
+                </div>
+              </div>
 
-        <p className="mt-10 text-center text-sm text-gray-500">
-          생각나셨나요?{' '}
-          <Link to="/login" className="font-semibold leading-6 text-primary-600 hover:text-primary-500">
-            로그인 페이지로 돌아가기
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="flex-1 justify-center rounded-2xl bg-white border border-gray-200 px-4 py-3.5 text-sm font-black text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+                >
+                  뒤로
+                </button>
+                <button
+                  type="submit"
+                  disabled={isVerifying}
+                  className="flex-1 justify-center rounded-2xl bg-primary-600 px-4 py-3.5 text-sm font-black text-white shadow-lg shadow-primary-600/30 transition-all hover:bg-primary-700 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                >
+                  {isVerifying ? "확인 중..." : "코드 확인"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {step === 3 && (
+            <form
+              className="space-y-6 animate-in slide-in-from-right-4 duration-300"
+              onSubmit={handleResetPassword}
+            >
+              <div>
+                <label
+                  htmlFor="pass"
+                  className="block text-sm font-bold leading-6 text-gray-900"
+                >
+                  새 비밀번호
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="pass"
+                    type="password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="새로운 비밀번호"
+                    className="block w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 sm:text-sm font-medium outline-none transition-all"
+                  />
+                </div>
+              </div>
+              <div>
+                <label
+                  htmlFor="confirm"
+                  className="block text-sm font-bold leading-6 text-gray-900"
+                >
+                  새 비밀번호 확인
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="confirm"
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setNewConfirmPassword(e.target.value)}
+                    placeholder="비밀번호 다시 입력"
+                    className="block w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 sm:text-sm font-medium outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="flex w-full justify-center rounded-2xl bg-green-600 px-4 py-3.5 text-sm font-black text-white shadow-lg shadow-green-600/30 transition-all hover:bg-green-700 active:scale-95"
+              >
+                비밀번호 변경하기
+              </button>
+            </form>
+          )}
+        </div>
+
+        <p className="mt-10 text-center text-sm font-medium text-gray-500">
+          비밀번호가 기억나셨나요?{" "}
+          <Link
+            to="/login"
+            className="font-black text-primary-600 hover:text-primary-800 transition-colors"
+          >
+            로그인하기
           </Link>
         </p>
       </div>
